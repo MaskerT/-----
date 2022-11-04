@@ -1,21 +1,22 @@
 <template>
   <div class="com-page">
-    <Trend></Trend>
+    <single-map></single-map>
   </div>
 </template>
 
 <script>
-import Trend from '@/components/Trend'
+import Map from '@/components/Map'
 export default {
-  data () {
+  data() {
     return {}
   },
   methods: {},
   components: {
-    Trend
+    'single-map': Map
   }
 }
 </script>
 
 <style lang="less" scoped>
+
 </style>
