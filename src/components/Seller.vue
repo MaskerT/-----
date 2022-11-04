@@ -7,7 +7,7 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
       chartInstance: null,
       allData: null, // 服务器返回的数据
@@ -16,21 +16,21 @@ export default {
       timerId: null // 定时器的标识
     }
   },
-  mounted () {
+  mounted() {
     this.initChart()
     this.getData()
     window.addEventListener('resize', this.screenAdapter)
     // 在页面加载完成的时候, 主动进行屏幕的适配
     this.screenAdapter()
   },
-  destroyed () {
+  destroyed() {
     clearInterval(this.timerId)
     // 在组件销毁的时候, 需要将监听器取消掉
     window.removeEventListener('resize', this.screenAdapter)
   },
   methods: {
     // 初始化echartInstance对象
-    initChart () {
+    initChart() {
       this.chartInstance = this.$echarts.init(this.$refs.seller_ref, 'chalk')
       // 对图表初始化配置的控制
       const initOption = {
@@ -101,7 +101,7 @@ export default {
       })
     },
     // 获取服务器的数据
-    async getData () {
+    async getData() {
       // http://127.0.0.1:8888/api/seller
       const { data: ret } = await this.$http.get('seller')
       this.allData = ret
@@ -116,7 +116,7 @@ export default {
       this.startInterval()
     },
     // 更新图表
-    updateChart () {
+    updateChart() {
       const start = (this.currentPage - 1) * 5
       const end = this.currentPage * 5
       const showData = this.allData.slice(start, end)
@@ -138,7 +138,7 @@ export default {
       }
       this.chartInstance.setOption(dataOption)
     },
-    startInterval () {
+    startInterval() {
       if (this.timerId) {
         clearInterval(this.timerId)
       }
@@ -151,7 +151,7 @@ export default {
       }, 3000)
     },
     // 当浏览器的大小发生变化的时候, 会调用的方法, 来完成屏幕的适配
-    screenAdapter () {
+    screenAdapter() {
       // console.log(this.$refs.seller_ref.offsetWidth)
       const titleFontSize = this.$refs.seller_ref.offsetWidth / 100 * 3.6
       // 和分辨率大小相关的配置项
@@ -186,4 +186,5 @@ export default {
 </script>
 
 <style lang="less" scoped>
+
 </style>

@@ -1,8 +1,8 @@
 <template>
   <div class="com-container">
     <div class="title" :style="comStyle">
-      <span>{{ '▎ ' +  showTitle }}</span>
-      <span class="iconfont title-icon" :style="comStyle"  @click="showChoice = !showChoice">&#xe6eb;</span>
+      <span>{{ '▎ ' + showTitle }}</span>
+      <span class="iconfont title-icon" :style="comStyle" @click="showChoice = !showChoice">&#xe6eb;</span>
       <div class="select-con" v-show="showChoice" :style="marginStyle">
         <div class="select-item" v-for="item in selectTypes" :key="item.key" @click="handleSelect(item.key)">
           {{ item.text }}
@@ -15,7 +15,7 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
       chartInstane: null,
       allData: null, // 从服务器中获取的所有数据
@@ -24,17 +24,17 @@ export default {
       titleFontSize: 0 // 指明标题的字体大小
     }
   },
-  mounted () {
+  mounted() {
     this.initChart()
     this.getData()
     window.addEventListener('resize', this.screenAdapter)
     this.screenAdapter()
   },
-  destroyed () {
+  destroyed() {
     window.removeEventListener('resize', this.screenAdapter)
   },
   computed: {
-    selectTypes () {
+    selectTypes() {
       if (!this.allData) {
         return []
       } else {
@@ -43,7 +43,7 @@ export default {
         })
       }
     },
-    showTitle () {
+    showTitle() {
       if (!this.allData) {
         return ''
       } else {
@@ -51,19 +51,19 @@ export default {
       }
     },
     // 设置给标题的样式
-    comStyle () {
+    comStyle() {
       return {
         fontSize: this.titleFontSize + 'px'
       }
     },
-    marginStyle () {
+    marginStyle() {
       return {
         marginLeft: this.titleFontSize + 'px'
       }
     }
   },
   methods: {
-    initChart () {
+    initChart() {
       this.chartInstane = this.$echarts.init(this.$refs.trend_ref, 'chalk')
       const initOption = {
         grid: {
@@ -91,7 +91,7 @@ export default {
       }
       this.chartInstane.setOption(initOption)
     },
-    async getData () {
+    async getData() {
       // await this.$http.get()
       // 对allData进行赋值
       const { data: ret } = await this.$http.get('trend')
@@ -99,7 +99,7 @@ export default {
       console.log(this.allData)
       this.updateChart()
     },
-    updateChart () {
+    updateChart() {
       // 半透明的颜色值
       const colorArr1 = [
         'rgba(11, 168, 44, 0.5)',
@@ -156,7 +156,7 @@ export default {
       }
       this.chartInstane.setOption(dataOption)
     },
-    screenAdapter () {
+    screenAdapter() {
       this.titleFontSize = this.$refs.trend_ref.offsetWidth / 100 * 3.6
       const adapterOption = {
         legend: {
@@ -171,7 +171,7 @@ export default {
       this.chartInstane.setOption(adapterOption)
       this.chartInstane.resize()
     },
-    handleSelect (currentType) {
+    handleSelect(currentType) {
       this.choiceType = currentType
       this.updateChart()
       this.showChoice = false
@@ -187,10 +187,12 @@ export default {
   top: 20px;
   z-index: 10;
   color: white;
+
   .title-icon {
     margin-left: 10px;
     cursor: pointer;
   }
+
   .select-con {
     background-color: #222733;
   }
