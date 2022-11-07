@@ -58,8 +58,10 @@ export default class SocketService {
         if (action === 'getData') {
           const realData = JSON.parse(recvData.data)
           this.callBackMapping[socketType].call(this, realData)
-        } else if (action === 'fullScrenn') {
+        } else if (action === 'fullScreen') {
+          this.callBackMapping[socketType].call(this, recvData)
         } else if (action === 'themeChange') {
+          this.callBackMapping[socketType].call(this, recvData)
         }
       }
     }

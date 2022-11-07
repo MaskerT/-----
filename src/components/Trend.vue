@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+import { getThemeValue } from '@/utils/theme_utils'
 export default {
   data() {
     return {
@@ -25,13 +27,13 @@ export default {
     }
   },
   created() {
-    // 在组件创建完成后进行回调函数的注册
+    // 在组件创建完成之后 进行回调函数的注册
     this.$socket.registerCallBack('trendData', this.getData)
   },
   mounted() {
     this.initChart()
     // this.getData()
-    // 发送数据给服务器，按照约定方式
+    // 发送数据给服务器, 告诉服务器, 我现在需要数据
     this.$socket.send({
       action: 'getData',
       socketType: 'trendData',
@@ -43,8 +45,8 @@ export default {
   },
   destroyed() {
     window.removeEventListener('resize', this.screenAdapter)
-    // 在组件销毁的时候进行回调函数的取消
-    this.$socket.unregisterCallBack('trendData')
+    // 在组件销毁的时候, 进行回调函数的取消
+    this.$socket.unRegisterCallBack('trendData')
   },
   computed: {
     selectTypes() {
@@ -66,18 +68,20 @@ export default {
     // 设置给标题的样式
     comStyle() {
       return {
-        fontSize: this.titleFontSize + 'px'
+        fontSize: this.titleFontSize + 'px',
+        color: getThemeValue(this.theme).titleColor
       }
     },
     marginStyle() {
       return {
         marginLeft: this.titleFontSize + 'px'
       }
-    }
+    },
+    ...mapState(['theme'])
   },
   methods: {
     initChart() {
-      this.chartInstane = this.$echarts.init(this.$refs.trend_ref, 'chalk')
+      this.chartInstane = this.$echarts.init(this.$refs.trend_ref, this.theme)
       const initOption = {
         grid: {
           left: '3%',
@@ -104,7 +108,7 @@ export default {
       }
       this.chartInstane.setOption(initOption)
     },
-    // ret 是服务端对客户端发送的图表数据
+    // ret 就是服务端发送给客户端的图表的数据
     getData(ret) {
       // await this.$http.get()
       // 对allData进行赋值
@@ -189,6 +193,15 @@ export default {
       this.choiceType = currentType
       this.updateChart()
       this.showChoice = false
+    }
+  },
+  watch: {
+    theme() {
+      console.log('主题切换了')
+      this.chartInstane.dispose() // 销毁当前的图表
+      this.initChart() // 重新以最新的主题名称初始化图表对象
+      this.screenAdapter() // 完成屏幕的适配
+      this.updateChart() // 更新图表的展示
     }
   }
 }

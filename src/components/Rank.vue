@@ -1,22 +1,24 @@
+<!-- 地区销售排行 -->
 <template>
-  <div class="com-container">
-    <div class="com-chart" ref="rank_ref"></div>
+  <div class='com-container'>
+    <div class='com-chart' ref='rank_ref'></div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
 export default {
   data() {
     return {
-      chartInstane: null,
-      allData: null, // 从服务器中获取的所有数据
+      chartInstance: null,
+      allData: null,
       startValue: 0, // 区域缩放的起点值
-      endValue: 9, // 区域缩放的重点值
-      timerId: null // 定时器标识
+      endValue: 9, // 区域缩放的终点值
+      timerId: null // 定时器的标识
     }
   },
   created() {
-    // 在组件创建完成后进行回调函数的注册
+    // 在组件创建完成之后 进行回调函数的注册
     this.$socket.registerCallBack('rankData', this.getData)
   },
   mounted() {
@@ -33,15 +35,15 @@ export default {
   },
   destroyed() {
     window.removeEventListener('resize', this.screenAdapter)
-    this.$socket.unregisterCallBack('rankData')
     clearInterval(this.timerId)
+    this.$socket.unRegisterCallBack('rankData')
   },
   methods: {
     initChart() {
-      this.chartInstane = this.$echarts.init(this.$refs.rank_ref, 'chalk')
+      this.chartInstance = this.$echarts.init(this.$refs.rank_ref, this.theme)
       const initOption = {
         title: {
-          text: '▎地区销售排行',
+          text: '▎ 地区销售排行',
           left: 20,
           top: 20
         },
@@ -67,23 +69,23 @@ export default {
           }
         ]
       }
-      this.chartInstane.setOption(initOption)
-      this.chartInstane.on('mouseover', () => {
+      this.chartInstance.setOption(initOption)
+      this.chartInstance.on('mouseover', () => {
         clearInterval(this.timerId)
       })
-      this.chartInstane.on('mouseout', () => {
+      this.chartInstance.on('mouseout', () => {
         this.startInterval()
       })
     },
     getData(ret) {
-      // await this.$http.get()
-      // 对allData进行赋值
+      // 获取服务器的数据, 对this.allData进行赋值之后, 调用updateChart方法更新图表
       // const { data: ret } = await this.$http.get('rank')
       this.allData = ret
-      // 对alldata中的元素从大到小排序
+      // 对allData里面的每一个元素进行排序, 从大到小进行
       this.allData.sort((a, b) => {
         return b.value - a.value
       })
+      console.log(this.allData)
       this.updateChart()
       this.startInterval()
     },
@@ -93,7 +95,8 @@ export default {
         ['#2E72BF', '#23E5E5'],
         ['#5052EE', '#AB6EE5']
       ]
-      // 所有省份的数组
+      // 处理图表需要的数据
+      // 所有省份所形成的数组
       const provinceArr = this.allData.map(item => {
         return item.name
       })
@@ -127,7 +130,6 @@ export default {
                   {
                     offset: 0,
                     color: targetColorArr[0]
-
                   },
                   {
                     offset: 1,
@@ -139,7 +141,7 @@ export default {
           }
         ]
       }
-      this.chartInstane.setOption(dataOption)
+      this.chartInstance.setOption(dataOption)
     },
     screenAdapter() {
       const titleFontSize = this.$refs.rank_ref.offsetWidth / 100 * 3.6
@@ -158,8 +160,8 @@ export default {
           }
         ]
       }
-      this.chartInstane.setOption(adapterOption)
-      this.chartInstane.resize()
+      this.chartInstance.setOption(adapterOption)
+      this.chartInstance.resize()
     },
     startInterval() {
       if (this.timerId) {
@@ -175,10 +177,22 @@ export default {
         this.updateChart()
       }, 2000)
     }
+  },
+  computed: {
+    ...mapState(['theme'])
+  },
+  watch: {
+    theme() {
+      console.log('主题切换了')
+      this.chartInstance.dispose() // 销毁当前的图表
+      this.initChart() // 重新以最新的主题名称初始化图表对象
+      this.screenAdapter() // 完成屏幕的适配
+      this.updateChart() // 更新图表的展示
+    }
   }
 }
 </script>
 
-<style lang="less" scoped>
+<style lang='less' scoped>
 
 </style>

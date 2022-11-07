@@ -1,23 +1,24 @@
+<!-- 商家分布图表 -->
 <template>
-  <div class="com-container" @dblclick="revertMap">
-    <div class="com-chart" ref="map_ref"></div>
+  <div class='com-container' @dblclick="revertMap">
+    <div class='com-chart' ref='map_ref'></div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
 import axios from 'axios'
 import { getProvinceMapInfo } from '@/utils/map_utils'
-
 export default {
   data() {
     return {
-      chartInstane: null,
-      allData: null, // 从服务器中获取的所有数据
+      chartInstance: null,
+      allData: null,
       mapData: {} // 所获取的省份的地图矢量数据
     }
   },
   created() {
-    // 在组件创建完成后进行回调函数的注册
+    // 在组件创建完成之后 进行回调函数的注册
     this.$socket.registerCallBack('mapData', this.getData)
   },
   mounted() {
@@ -34,17 +35,19 @@ export default {
   },
   destroyed() {
     window.removeEventListener('resize', this.screenAdapter)
-    this.$socket.unregisterCallBack('mapData')
+    this.$socket.unRegisterCallBack('mapData')
   },
   methods: {
     async initChart() {
-      this.chartInstane = this.$echarts.init(this.$refs.map_ref, 'chalk')
+      this.chartInstance = this.$echarts.init(this.$refs.map_ref, this.theme)
       // 获取中国地图的矢量数据
+      // http://localhost:8999/static/map/china.json
+      // 由于我们现在获取的地图矢量数据并不是位于KOA2的后台, 所以咱们不能使用this.$http
       const ret = await axios.get('http://localhost:8999/static/map/china.json')
       this.$echarts.registerMap('china', ret.data)
       const initOption = {
         title: {
-          text: '▎商家分布',
+          text: '▎ 商家分布',
           left: 20,
           top: 20
         },
@@ -54,7 +57,7 @@ export default {
           top: '5%',
           bottom: '5%',
           itemStyle: {
-            areaColor: '#2172BF',
+            areaColor: '#2E72BF',
             borderColor: '#333'
           }
         },
@@ -64,12 +67,15 @@ export default {
           orient: 'vertical'
         }
       }
-      this.chartInstane.setOption(initOption)
-      this.chartInstane.on('click', async arg => {
+      this.chartInstance.setOption(initOption)
+      this.chartInstance.on('click', async arg => {
+        // arg.name 得到所点击的省份, 这个省份他是中文
         const provinceInfo = getProvinceMapInfo(arg.name)
-        // 判断当前省份的数据是否已经在缓存当中了
+        console.log(provinceInfo)
+        // 需要获取这个省份的地图矢量数据
+        // 判断当前所点击的这个省份的地图矢量数据在mapData中是否存在
         if (!this.mapData[provinceInfo.key]) {
-          const ret = await axios.get(`http://localhost:8999${provinceInfo.path}`)
+          const ret = await axios.get('http://localhost:8999' + provinceInfo.path)
           this.mapData[provinceInfo.key] = ret.data
           this.$echarts.registerMap(provinceInfo.key, ret.data)
         }
@@ -78,24 +84,25 @@ export default {
             map: provinceInfo.key
           }
         }
-        this.chartInstane.setOption(changeOption)
+        this.chartInstance.setOption(changeOption)
       })
     },
     getData(ret) {
-      // await this.$http.get()
-      // 对allData进行赋值
+      // 获取服务器的数据, 对this.allData进行赋值之后, 调用updateChart方法更新图表
       // const { data: ret } = await this.$http.get('map')
       this.allData = ret
+      console.log(this.allData)
       this.updateChart()
     },
     updateChart() {
+      // 处理图表需要的数据
       // 图例的数据
       const legendArr = this.allData.map(item => {
         return item.name
       })
       const seriesArr = this.allData.map(item => {
-        // return 的对象代表的是一个类别下的所有散点数据
-        // 若想在地图中显示散点，我们需要给三点图表增加一个配置coordinateSystem
+        // return的这个对象就代表的是一个类别下的所有散点数据
+        // 如果想在地图中显示散点的数据, 我们需要给散点的图表增加一个配置, coordinateSystem:geo
         return {
           type: 'effectScatter',
           rippleEffect: {
@@ -113,7 +120,7 @@ export default {
         },
         series: seriesArr
       }
-      this.chartInstane.setOption(dataOption)
+      this.chartInstance.setOption(dataOption)
     },
     screenAdapter() {
       const titleFontSize = this.$refs.map_ref.offsetWidth / 100 * 3.6
@@ -132,21 +139,34 @@ export default {
           }
         }
       }
-      this.chartInstane.setOption(adapterOption)
-      this.chartInstane.resize()
+      this.chartInstance.setOption(adapterOption)
+      this.chartInstance.resize()
     },
+    // 回到中国地图
     revertMap() {
       const revertOption = {
         geo: {
           map: 'china'
         }
       }
-      this.chartInstane.setOption(revertOption)
+      this.chartInstance.setOption(revertOption)
+    }
+  },
+  computed: {
+    ...mapState(['theme'])
+  },
+  watch: {
+    theme() {
+      console.log('主题切换了')
+      this.chartInstance.dispose() // 销毁当前的图表
+      this.initChart() // 重新以最新的主题名称初始化图表对象
+      this.screenAdapter() // 完成屏幕的适配
+      this.updateChart() // 更新图表的展示
     }
   }
 }
 </script>
 
-<style lang="less" scoped>
+<style lang='less' scoped>
 
 </style>

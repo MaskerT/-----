@@ -6,6 +6,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
 export default {
   data() {
     return {
@@ -17,7 +18,7 @@ export default {
     }
   },
   created() {
-    // 在组件创建完成后进行回调函数的注册
+    // 在组件创建完成之后 进行回调函数的注册
     this.$socket.registerCallBack('sellerData', this.getData)
   },
   mounted() {
@@ -35,14 +36,14 @@ export default {
   },
   destroyed() {
     clearInterval(this.timerId)
-    this.$socket.unregisterCallBack('sellerData')
     // 在组件销毁的时候, 需要将监听器取消掉
     window.removeEventListener('resize', this.screenAdapter)
+    this.$socket.unRegisterCallBack('sellerData')
   },
   methods: {
     // 初始化echartInstance对象
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs.seller_ref, 'chalk')
+      this.chartInstance = this.$echarts.init(this.$refs.seller_ref, this.theme)
       // 对图表初始化配置的控制
       const initOption = {
         title: {
@@ -191,6 +192,18 @@ export default {
       this.chartInstance.setOption(adapterOption)
       // 手动的调用图表对象的resize 才能产生效果
       this.chartInstance.resize()
+    }
+  },
+  computed: {
+    ...mapState(['theme'])
+  },
+  watch: {
+    theme() {
+      console.log('主题切换了')
+      this.chartInstance.dispose() // 销毁当前的图表
+      this.initChart() // 重新以最新的主题名称初始化图表对象
+      this.screenAdapter() // 完成屏幕的适配
+      this.updateChart() // 更新图表的展示
     }
   }
 }
