@@ -17,14 +17,25 @@ export default {
       titleFontSize: 0 // 窗口自适应的参数
     }
   },
+  created() {
+    // 在组件创建完成后进行回调函数的注册
+    this.$socket.registerCallBack('hotData', this.getData)
+  },
   mounted() {
     this.initChart()
-    this.getData()
+    // this.getData()
+    this.$socket.send({
+      action: 'getData',
+      socketType: 'hotData',
+      chartName: 'hot',
+      value: ''
+    })
     window.addEventListener('resize', this.screenAdapter)
     this.screenAdapter()
   },
   destroyed() {
     window.removeEventListener('resize', this.screenAdapter)
+    this.$socket.unregisterCallBack('mapData')
   },
   computed: {
     catName() {
@@ -90,9 +101,9 @@ export default {
       }
       this.chartInstane.setOption(initOption)
     },
-    async getData() {
+    getData(ret) {
       // 对allData进行赋值
-      const { data: ret } = await this.$http.get('hot')
+      // const { data: ret } = await this.$http.get('hot')
       this.allData = ret
       this.updateChart()
     },
